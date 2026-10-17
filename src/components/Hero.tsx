@@ -1,18 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { Play, Download, Mail, ExternalLink, Globe, Code2, BarChart3, Settings, Camera, UploadCloud } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Download, Mail, ExternalLink, Globe, Code2, BarChart3, Settings } from 'lucide-react';
 import { GithubIcon } from './GithubIcon';
 import confetti from 'canvas-confetti';
 
 export const Hero: React.FC = () => {
   const [photoError, setPhotoError] = useState(false);
-  const [localPhoto, setLocalPhoto] = useState<string | null>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('mahesh_profile_preview');
-    }
-    return null;
-  });
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const triggerConfetti = () => {
     confetti({
@@ -23,36 +15,7 @@ export const Hero: React.FC = () => {
     });
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setLocalPhoto(result);
-        localStorage.setItem('mahesh_profile_preview', result);
-        setPhotoError(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setLocalPhoto(result);
-        localStorage.setItem('mahesh_profile_preview', result);
-        setPhotoError(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const activePhotoSrc = localPhoto || '/profile.png';
+  const activePhotoSrc = '/profile.png';
 
   return (
     <section
@@ -164,64 +127,26 @@ export const Hero: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Column: Dedicated Profile Photo Space with Neon Glow Ring (4 cols) */}
+          {/* Center Column: Dedicated Profile Photo with Neon Glow Ring (4 cols) */}
           <div className="lg:col-span-4 flex flex-col items-center justify-center relative">
-            {/* Hidden file input for one-click photo upload */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-
             {/* Outer Circular Neon Glow Ring */}
             <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full p-1 ring-4 ring-purple-500 dark:ring-purple-500 shadow-[0_0_50px_rgba(168,85,247,0.35)] dark:shadow-[0_0_65px_rgba(168,85,247,0.6),inset_0_0_20px_rgba(168,85,247,0.3)] flex items-center justify-center bg-purple-50 dark:bg-[#090D18] overflow-hidden group">
-              
               {!photoError ? (
-                <div className="relative w-full h-full">
+                <div className="relative w-full h-full overflow-hidden rounded-full">
                   <img
                     src={activePhotoSrc}
                     alt="Garidepalli Mahesh Raja"
-                    onError={() => {
-                      if (!localPhoto) {
-                        setPhotoError(true);
-                      }
-                    }}
-                    className="w-full h-full object-cover rounded-full"
+                    onError={() => setPhotoError(true)}
+                    className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
                   />
-                  {/* Interactive hover overlay */}
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute inset-0 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-purple-300"
-                    title="Click to change profile photo"
-                  >
-                    <Camera className="w-7 h-7 mb-1" />
-                    <span className="text-[11px] font-bold text-white">Change Photo</span>
-                    <span className="text-[9px] text-purple-300/80">Click to upload</span>
-                  </div>
                 </div>
               ) : (
-                /* Profile Photo Placeholder Area */
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={handleDrop}
-                  className="w-full h-full rounded-full bg-gradient-to-b from-purple-100 to-indigo-50 dark:from-[#13192B] dark:to-[#0A0D17] flex flex-col items-center justify-center text-center p-6 relative cursor-pointer group/placeholder hover:bg-purple-200/50 dark:hover:bg-[#161D33] transition-all"
-                  title="Click or drag an image here to preview your profile photo"
-                >
-                  <div className="w-36 h-36 rounded-full bg-purple-500/20 dark:bg-purple-600/25 blur-xl absolute -z-0" />
-                  
-                  <div className="relative z-10 w-20 h-20 rounded-2xl bg-white dark:bg-purple-950/70 border border-purple-300 dark:border-purple-500/50 flex items-center justify-center text-purple-600 dark:text-purple-300 mb-3 shadow-md dark:shadow-[0_0_25px_rgba(168,85,247,0.35)] group-hover/placeholder:scale-105 transition-all">
-                    <Camera className="w-9 h-9" />
+                <div className="w-full h-full rounded-full bg-gradient-to-b from-purple-100 to-indigo-50 dark:from-[#13192B] dark:to-[#0A0D17] flex flex-col items-center justify-center text-center p-6">
+                  <div className="w-20 h-20 rounded-2xl bg-white dark:bg-purple-950/70 border border-purple-300 dark:border-purple-500/50 flex items-center justify-center text-purple-600 dark:text-purple-300 mb-3 shadow-md">
+                    <span className="text-2xl font-black">MR</span>
                   </div>
-
-                  <span className="relative z-10 text-xs font-bold text-[#11182B] dark:text-white tracking-wide">
+                  <span className="text-xs font-bold text-[#11182B] dark:text-white tracking-wide">
                     Mahesh Raja
-                  </span>
-                  <span className="relative z-10 text-[10px] text-purple-700 dark:text-purple-300/90 mt-1 flex items-center gap-1">
-                    <UploadCloud className="w-3 h-3 text-purple-500" />
-                    <span>Upload Profile Photo</span>
                   </span>
                 </div>
               )}

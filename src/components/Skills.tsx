@@ -1,29 +1,44 @@
 import React, { useState } from 'react';
 import { ArrowRight, ChevronUp } from 'lucide-react';
 import { skillGroups } from '../data/skills';
+import {
+  PythonIcon,
+  JavaIcon,
+  JavaScriptIcon,
+  SqlIcon,
+  ReactIcon,
+  NodeIcon,
+  ExpressIcon,
+  FlaskIcon,
+  TensorflowIcon,
+  KerasIcon,
+  OpenAiIcon,
+  GitIcon,
+  DockerIcon,
+  SupabaseIcon
+} from './TechIcons';
 
 interface TechItem {
   name: string;
   category: string;
-  color: string;
-  badge: string;
+  Icon: React.FC<{ className?: string }>;
 }
 
 const PRIMARY_TECHS: TechItem[] = [
-  { name: 'Python', category: 'Backend & AI', color: 'from-blue-500 to-yellow-500', badge: '🐍' },
-  { name: 'Java', category: 'OOP & Systems', color: 'from-red-500 to-amber-600', badge: '☕' },
-  { name: 'JavaScript', category: 'Frontend & Node', color: 'from-yellow-400 to-amber-500', badge: 'JS' },
-  { name: 'SQL', category: 'Databases', color: 'from-sky-500 to-blue-600', badge: '🗄️' },
-  { name: 'React', category: 'Frontend UI', color: 'from-cyan-400 to-blue-500', badge: '⚛️' },
-  { name: 'Node.js', category: 'Runtime', color: 'from-emerald-500 to-green-600', badge: '🟢' },
-  { name: 'Express.js', category: 'Backend APIs', color: 'from-slate-400 to-slate-200', badge: 'ex' },
-  { name: 'Flask', category: 'Python Web', color: 'from-indigo-400 to-purple-400', badge: '🧪' },
-  { name: 'TensorFlow', category: 'Deep Learning', color: 'from-amber-500 to-orange-600', badge: '🔶' },
-  { name: 'Keras', category: 'Neural Networks', color: 'from-rose-500 to-red-600', badge: 'K' },
-  { name: 'OpenAI', category: 'LLM Agents', color: 'from-emerald-400 to-teal-500', badge: '🤖' },
-  { name: 'Git', category: 'Version Control', color: 'from-orange-500 to-rose-500', badge: '🌿' },
-  { name: 'Docker', category: 'Containers', color: 'from-blue-400 to-sky-500', badge: '🐳' },
-  { name: 'Supabase', category: 'Cloud Postgres', color: 'from-emerald-400 to-teal-400', badge: '⚡' },
+  { name: 'Python', category: 'Backend & AI', Icon: PythonIcon },
+  { name: 'Java', category: 'OOP & Systems', Icon: JavaIcon },
+  { name: 'JavaScript', category: 'Frontend & Node', Icon: JavaScriptIcon },
+  { name: 'SQL', category: 'Databases', Icon: SqlIcon },
+  { name: 'React', category: 'Frontend UI', Icon: ReactIcon },
+  { name: 'Node.js', category: 'Runtime', Icon: NodeIcon },
+  { name: 'Express.js', category: 'Backend APIs', Icon: ExpressIcon },
+  { name: 'Flask', category: 'Python Web', Icon: FlaskIcon },
+  { name: 'TensorFlow', category: 'Deep Learning', Icon: TensorflowIcon },
+  { name: 'Keras', category: 'Neural Networks', Icon: KerasIcon },
+  { name: 'OpenAI', category: 'LLM Agents', Icon: OpenAiIcon },
+  { name: 'Git', category: 'Version Control', Icon: GitIcon },
+  { name: 'Docker', category: 'Containers', Icon: DockerIcon },
+  { name: 'Supabase', category: 'Cloud Postgres', Icon: SupabaseIcon },
 ];
 
 export const Skills: React.FC = () => {
@@ -33,7 +48,7 @@ export const Skills: React.FC = () => {
     <section id="skills" className="py-20 bg-white dark:bg-[#06080F] border-t border-[#E4EAF5] dark:border-slate-900 transition-colors scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header matching screenshot */}
+        {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div>
             <span className="text-purple-600 dark:text-purple-400 text-xs font-bold tracking-widest uppercase block mb-2">
@@ -54,15 +69,15 @@ export const Skills: React.FC = () => {
           </button>
         </div>
 
-        {/* Primary Icon Shelf matching screenshot */}
+        {/* Primary Icon Shelf */}
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 sm:gap-4 mb-6">
           {PRIMARY_TECHS.map((tech) => (
             <div
               key={tech.name}
               className="p-4 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F]/90 backdrop-blur-md border border-[#E4EAF5] dark:border-slate-800/80 shadow-xs dark:shadow-none hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(139,92,246,0.2)] transition-all duration-300 flex flex-col items-center text-center group cursor-default"
             >
-              <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#141A2B] border border-[#E4EAF5] dark:border-slate-700/60 flex items-center justify-center text-lg sm:text-xl mb-2.5 group-hover:scale-110 transition-transform shadow-xs dark:shadow-inner">
-                {tech.badge}
+              <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#141A2B] border border-[#E4EAF5] dark:border-slate-700/60 flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform shadow-xs dark:shadow-inner">
+                <tech.Icon className="w-6 h-6 shrink-0" />
               </div>
               <span className="text-xs font-bold text-[#11182B] dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors">
                 {tech.name}
