@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Check, Copy, AlertCircle, Monitor } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Check, Copy, AlertCircle, Monitor, Loader2, ExternalLink } from 'lucide-react';
+import { LinkedinIcon } from './LinkedinIcon';
 import confetti from 'canvas-confetti';
 
 interface FormData {
@@ -15,6 +16,8 @@ interface FormErrors {
   message?: string;
 }
 
+type SubmissionState = 'idle' | 'submitting' | 'success' | 'error';
+
 export const ContactSection: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
@@ -26,62 +29,117 @@ export const ContactSection: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
-  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [submissionState, setSubmissionState] = useState<SubmissionState>('idle');
+  const [serverFeedback, setServerFeedback] = useState<string>('');
+  const [retryAfterMinutes, setRetryAfterMinutes] = useState<number | null>(null);
 
   const validate = (): boolean => {
     const errs: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      errs.name = 'Please provide your name.';
+    const trimmedName = formData.name.trim();
+    if (!trimmedName) {
+      errs.name = 'Please provide your full name.';
+    } else if (trimmedName.length < 2) {
+      errs.name = 'Name must be at least 2 characters long.';
+    } else if (trimmedName.length > 100) {
+      errs.name = 'Name cannot exceed 100 characters.';
     }
 
-    if (!formData.email.trim()) {
+    const trimmedEmail = formData.email.trim();
+    if (!trimmedEmail) {
       errs.email = 'Please provide your email address.';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      errs.email = 'Please provide a valid email format.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      errs.email = 'Please provide a valid email format (e.g. name@domain.com).';
     }
 
-    if (!formData.message.trim()) {
+    const trimmedMessage = formData.message.trim();
+    if (!trimmedMessage) {
       errs.message = 'Please enter your message.';
+    } else if (trimmedMessage.length < 10) {
+      errs.message = 'Message must be at least 10 characters long.';
+    } else if (trimmedMessage.length > 3000) {
+      errs.message = 'Message cannot exceed 3000 characters.';
     }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.botHoneypot) return;
+    // Silently block honeypot bots
+    if (formData.botHoneypot) {
+      setSubmissionState('success');
+      setServerFeedback('Message received. Thank you!');
+      return;
+    }
+
     if (!validate()) return;
 
-    const emailTo = 'maheshrajagaridepalli954@gmail.com';
-    const emailSubject = encodeURIComponent(`[Portfolio Inquiry] From ${formData.name}`);
-    const emailBody = encodeURIComponent(
-      `Hello Mahesh,\n\nName: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}\n\n---\nSent from your portfolio website.`
-    );
+    setSubmissionState('submitting');
+    setServerFeedback('');
+    setRetryAfterMinutes(null);
 
-    const mailtoUrl = `mailto:${emailTo}?subject=${emailSubject}&body=${emailBody}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second timeout guard
 
-    confetti({
-      particleCount: 40,
-      spread: 60,
-      origin: { y: 0.8 },
-      colors: ['#8B5CF6', '#3B82F6', '#A855F7'],
-    });
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          message: formData.message.trim(),
+          botHoneypot: formData.botHoneypot,
+        }),
+        signal: controller.signal,
+      });
 
-    setFormSubmitted(true);
-    
-    // Clear form inputs upon successful submission
-    setFormData({
-      name: '',
-      email: '',
-      message: '',
-      botHoneypot: '',
-    });
-    setErrors({});
+      clearTimeout(timeoutId);
+      const data = await response.json().catch(() => ({}));
 
-    window.location.href = mailtoUrl;
+      if (response.ok && data.ok) {
+        // Confirmed backend persistence
+        setSubmissionState('success');
+        setServerFeedback(data.message || 'Your message has been received! Mahesh will get back to you shortly.');
+
+        confetti({
+          particleCount: 50,
+          spread: 70,
+          origin: { y: 0.8 },
+          colors: ['#8B5CF6', '#3B82F6', '#A855F7', '#60A5FA'],
+        });
+
+        // Reset form inputs only after verified success
+        setFormData({
+          name: '',
+          email: '',
+          message: '',
+          botHoneypot: '',
+        });
+        setErrors({});
+      } else {
+        // Backend returned failure status
+        setSubmissionState('error');
+        setServerFeedback(data.error || 'Failed to submit message through backend API.');
+        if (data.retryAfterMinutes) {
+          setRetryAfterMinutes(data.retryAfterMinutes);
+        }
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      setSubmissionState('error');
+      if (err.name === 'AbortError') {
+        setServerFeedback('The request timed out. Please try again or use direct email below.');
+      } else {
+        setServerFeedback('Unable to connect to the server API. You can send your message directly via email.');
+      }
+    }
   };
 
   const handleCopyEmail = () => {
@@ -96,6 +154,14 @@ export const ContactSection: React.FC = () => {
     setTimeout(() => setCopiedPhone(false), 2500);
   };
 
+  const getDirectMailtoUrl = () => {
+    const subject = encodeURIComponent(`Portfolio Inquiry - ${formData.name || 'Visitor'}`);
+    const body = encodeURIComponent(
+      `Hi Mahesh,\n\n${formData.message ? formData.message + '\n\n' : ''}Best regards,\n${formData.name || ''}\n${formData.email ? 'Email: ' + formData.email : ''}`
+    );
+    return `mailto:maheshrajagaridepalli954@gmail.com?subject=${subject}&body=${body}`;
+  };
+
   return (
     <section id="contact" className="py-20 bg-white dark:bg-[#06080F] border-t border-[#E4EAF5] dark:border-slate-900 transition-colors relative scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,27 +174,28 @@ export const ContactSection: React.FC = () => {
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#11182B] dark:text-white tracking-tight">
             Get In Touch
           </h2>
-          <p className="mt-2 text-xs sm:text-sm text-[#475569] dark:text-slate-400">
-            I'm open to opportunities and collaborations. Feel free to reach out!
+          <p className="mt-2 text-xs sm:text-sm text-[#475569] dark:text-slate-400 max-w-2xl">
+            Whether you have an engineering opportunity, a project collaboration, or an inquiry regarding AI systems and full-stack development, feel free to reach out.
           </p>
         </div>
 
-        {/* 3-Column Layout matching screenshot */}
+        {/* 3-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Direct Contact Info (3.5 cols) */}
-          <div className="lg:col-span-4 space-y-4">
+          {/* Left Column: Direct Contact Info (4 cols) */}
+          <div className="lg:col-span-4 space-y-3.5">
             {/* Email card */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-xs dark:shadow-none">
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-xs dark:shadow-none hover:border-purple-500/40 transition-colors">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-500/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold">Email</span>
+                  <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold tracking-wider">Email</span>
                   <a
                     href="mailto:maheshrajagaridepalli954@gmail.com"
                     className="text-xs font-semibold text-[#11182B] dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors truncate block"
+                    title="maheshrajagaridepalli954@gmail.com"
                   >
                     maheshrajagaridepalli954@gmail.com
                   </a>
@@ -137,8 +204,8 @@ export const ContactSection: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyEmail}
-                className="p-2 rounded-lg text-[#64748B] dark:text-slate-400 hover:text-[#11182B] dark:hover:text-white transition-colors shrink-0"
-                title="Copy email"
+                className="p-2 rounded-lg text-[#64748B] dark:text-slate-400 hover:text-[#11182B] dark:hover:text-white transition-colors shrink-0 cursor-pointer"
+                title="Copy email to clipboard"
                 aria-label="Copy email"
               >
                 {copiedEmail ? <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -146,13 +213,13 @@ export const ContactSection: React.FC = () => {
             </div>
 
             {/* Phone card */}
-            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-xs dark:shadow-none">
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-xs dark:shadow-none hover:border-blue-500/40 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-500/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold">Phone</span>
+                  <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold tracking-wider">Phone</span>
                   <a
                     href="tel:+919398961621"
                     className="text-xs font-semibold text-[#11182B] dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors block"
@@ -164,8 +231,8 @@ export const ContactSection: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyPhone}
-                className="p-2 rounded-lg text-[#64748B] dark:text-slate-400 hover:text-[#11182B] dark:hover:text-white transition-colors shrink-0"
-                title="Copy phone"
+                className="p-2 rounded-lg text-[#64748B] dark:text-slate-400 hover:text-[#11182B] dark:hover:text-white transition-colors shrink-0 cursor-pointer"
+                title="Copy phone number"
                 aria-label="Copy phone"
               >
                 {copiedPhone ? <Check className="w-4 h-4 text-emerald-500 dark:text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -178,60 +245,103 @@ export const ContactSection: React.FC = () => {
                 <MapPin className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold">Location</span>
+                <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold tracking-wider">Location</span>
                 <span className="text-xs font-semibold text-[#11182B] dark:text-white block">
                   Hyderabad, Telangana, India
                 </span>
               </div>
             </div>
+
+            {/* Professional Profiles (GitHub & LinkedIn) */}
+            <div className="grid grid-cols-2 gap-2 pt-1">
+              <a
+                href="https://github.com/maheshraja12"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-[#CBD5E1] dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0D121F] text-[#11182B] dark:text-slate-200 hover:border-purple-500/50 hover:text-purple-600 dark:hover:text-purple-400 text-xs font-semibold transition-all shadow-xs"
+              >
+                <span>GitHub</span>
+                <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+              </a>
+
+              <a
+                href="https://linkedin.com/in/garidepalli-mahesh-raja"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 p-2.5 rounded-xl border border-[#CBD5E1] dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0D121F] text-[#11182B] dark:text-slate-200 hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400 text-xs font-semibold transition-all shadow-xs"
+              >
+                <LinkedinIcon className="w-3.5 h-3.5 text-blue-500" />
+                <span>LinkedIn</span>
+              </a>
+            </div>
           </div>
 
-          {/* Center Column: Form (4.5 cols) */}
+          {/* Center Column: Secure Form (5 cols) */}
           <div className="lg:col-span-5">
             <div className="p-6 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-sm dark:shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-                <input
-                  type="text"
-                  name="botHoneypot"
-                  value={formData.botHoneypot}
-                  onChange={(e) => setFormData({ ...formData, botHoneypot: e.target.value })}
-                  style={{ display: 'none' }}
-                  tabIndex={-1}
-                  autoComplete="off"
-                />
+                {/* Anti-spam honeypot (hidden from human visitors) */}
+                <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }} aria-hidden="true">
+                  <label htmlFor="botHoneypot">Do not fill this field if you are human</label>
+                  <input
+                    type="text"
+                    id="botHoneypot"
+                    name="botHoneypot"
+                    value={formData.botHoneypot}
+                    onChange={(e) => setFormData({ ...formData, botHoneypot: e.target.value })}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
+                    <label htmlFor="contact-name" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
+                      Your Name <span className="text-purple-600">*</span>
+                    </label>
                     <input
+                      id="contact-name"
                       type="text"
+                      disabled={submissionState === 'submitting'}
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Your Name"
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        if (errors.name) setErrors({ ...errors, name: undefined });
+                      }}
+                      placeholder="e.g. Alex Johnson"
                       className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                        errors.name ? 'border-rose-400' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none shadow-xs dark:shadow-none`}
+                        errors.name ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
                     />
                     {errors.name && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
+                        <AlertCircle className="w-3 h-3 shrink-0" />
                         <span>{errors.name}</span>
                       </p>
                     )}
                   </div>
 
                   <div>
+                    <label htmlFor="contact-email" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
+                      Your Email <span className="text-purple-600">*</span>
+                    </label>
                     <input
+                      id="contact-email"
                       type="email"
+                      disabled={submissionState === 'submitting'}
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="Your Email"
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value });
+                        if (errors.email) setErrors({ ...errors, email: undefined });
+                      }}
+                      placeholder="e.g. alex@company.com"
                       className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                        errors.email ? 'border-rose-400' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none shadow-xs dark:shadow-none`}
+                        errors.email ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
                     />
                     {errors.email && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
+                        <AlertCircle className="w-3 h-3 shrink-0" />
                         <span>{errors.email}</span>
                       </p>
                     )}
@@ -239,18 +349,26 @@ export const ContactSection: React.FC = () => {
                 </div>
 
                 <div>
+                  <label htmlFor="contact-message" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
+                    Message <span className="text-purple-600">*</span>
+                  </label>
                   <textarea
+                    id="contact-message"
                     rows={4}
+                    disabled={submissionState === 'submitting'}
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Your Message"
+                    onChange={(e) => {
+                      setFormData({ ...formData, message: e.target.value });
+                      if (errors.message) setErrors({ ...errors, message: undefined });
+                    }}
+                    placeholder="Describe your inquiry, project scope, or opportunity..."
                     className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                      errors.message ? 'border-rose-400' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                    } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none shadow-xs dark:shadow-none`}
+                      errors.message ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                    } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60 resize-y`}
                   />
                   {errors.message && (
                     <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
+                      <AlertCircle className="w-3 h-3 shrink-0" />
                       <span>{errors.message}</span>
                     </p>
                   )}
@@ -258,23 +376,66 @@ export const ContactSection: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold text-xs shadow-md dark:shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  disabled={submissionState === 'submitting'}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold text-xs shadow-md dark:shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Send Message</span>
+                  {submissionState === 'submitting' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Sending Securely...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Send Message</span>
+                    </>
+                  )}
                 </button>
 
-                {formSubmitted && (
-                  <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Email client launched with your formatted message!</span>
+                {/* Verified Backend Success State */}
+                {submissionState === 'success' && (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 space-y-1 animate-in fade-in duration-300">
+                    <div className="flex items-center gap-2 font-semibold">
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>Message Delivered Successfully</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300 pl-6">
+                      {serverFeedback}
+                    </p>
+                  </div>
+                )}
+
+                {/* Explicit Backend Failure State with Safe Fallback */}
+                {submissionState === 'error' && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 text-xs text-rose-800 dark:text-rose-300 space-y-2 animate-in fade-in duration-300">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-semibold block">Submission Notice</span>
+                        <p className="text-[11px] text-rose-700 dark:text-rose-300 mt-0.5">
+                          {serverFeedback}
+                          {retryAfterMinutes ? ` Please retry in ${retryAfterMinutes} minute(s).` : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-rose-200 dark:border-rose-800/60 flex items-center justify-between">
+                      <span className="text-[10px] text-rose-600 dark:text-rose-400">Alternative direct email option:</span>
+                      <a
+                        href={getDirectMailtoUrl()}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition-colors shadow-xs"
+                      >
+                        <Mail className="w-3 h-3" />
+                        <span>Send via Email Client</span>
+                      </a>
+                    </div>
                   </div>
                 )}
               </form>
             </div>
           </div>
 
-          {/* Right Column: Workstation Graphic with Neon Sign (3 cols) */}
+          {/* Right Column: Workstation Graphic (3 cols) */}
           <div className="lg:col-span-3 flex justify-center items-center">
             <div className="w-full rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 p-5 relative overflow-hidden flex flex-col justify-between aspect-[4/3] shadow-md dark:shadow-2xl">
               {/* Purple backlight glow */}
@@ -292,7 +453,7 @@ export const ContactSection: React.FC = () => {
                 <div className="w-12 h-1 bg-slate-400 dark:bg-slate-600 rounded-full" />
               </div>
 
-              {/* Neon Sign in Workstation Corner matching screenshot */}
+              {/* Neon Sign in Workstation Corner */}
               <div className="relative z-10 p-2.5 rounded-xl border border-pink-500/40 bg-pink-100/60 dark:bg-pink-950/30 text-center shadow-[0_0_15px_rgba(236,72,153,0.25)] mt-2">
                 <span className="text-[10px] font-mono tracking-widest font-black text-pink-700 dark:text-pink-300 uppercase block">
                   GOOD IDEAS<br />BETTER BUILDS

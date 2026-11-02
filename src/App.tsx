@@ -2,6 +2,7 @@ import React from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ProfileHighlights } from './components/ProfileHighlights';
+import { About } from './components/About';
 import { ProjectGrid } from './components/ProjectGrid';
 import { Skills } from './components/Skills';
 import { ExperienceTimeline } from './components/ExperienceTimeline';
@@ -14,7 +15,7 @@ export const App: React.FC = () => {
       {/* Sticky Header Navigation */}
       <Header />
 
-      {/* Main Page Content matching reference screenshot layout */}
+      {/* Main Page Content */}
       <main>
         {/* 1. Hero Section with Neon Portrait Ring, Floating Code Card & Stacked Tech Pills */}
         <Hero />
@@ -22,16 +23,19 @@ export const App: React.FC = () => {
         {/* 2. 4-Metric Glassmorphism Highlights Bar */}
         <ProfileHighlights />
 
-        {/* 3. Featured Work: Projects Grid (4-Column Layout with Filter Pills) */}
+        {/* 3. About Section: Narrative, Core Engineering Pillars, Capabilities */}
+        <About />
+
+        {/* 4. Featured Work: Projects Grid (4-Column Layout with Filter Pills) */}
         <ProjectGrid />
 
-        {/* 4. Technical Skills: 14-Item Tech Icon Shelf */}
+        {/* 5. Technical Skills: 14-Item Tech Icon Shelf */}
         <Skills />
 
-        {/* 5. 2-Column Section: Journey (Experience & Education) + Research (Conference & What Drives Me) */}
+        {/* 6. 2-Column Section: Journey (Experience & Education) + Research (Conference & What Drives Me) */}
         <ExperienceTimeline />
 
-        {/* 6. Contact: 3-Column Layout (Direct Info, Message Form, & Developer Workstation graphic) */}
+        {/* 7. Contact: 3-Column Layout (Direct Info, Message Form, & Developer Workstation graphic) */}
         <ContactSection />
       </main>
 

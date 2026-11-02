@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Download, ExternalLink, Mail } from 'lucide-react';
 import { GithubIcon } from './GithubIcon';
+import { LinkedinIcon } from './LinkedinIcon';
 import { ThemeToggle } from './ThemeToggle';
 
 interface MobileNavigationProps {
@@ -102,6 +103,15 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               aria-label="GitHub Profile"
             >
               <GithubIcon className="w-5 h-5" />
+            </a>
+            <a
+              href="https://linkedin.com/in/garidepalli-mahesh-raja"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-[#64748B] dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              aria-label="LinkedIn Profile"
+            >
+              <LinkedinIcon className="w-5 h-5 text-blue-500" />
             </a>
             <a
               href="mailto:maheshrajagaridepalli954@gmail.com"

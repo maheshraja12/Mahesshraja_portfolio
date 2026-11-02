@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Play, Download, Mail, ExternalLink, Globe, Code2, BarChart3, Settings } from 'lucide-react';
 import { GithubIcon } from './GithubIcon';
+import { LinkedinIcon } from './LinkedinIcon';
 import confetti from 'canvas-confetti';
 
 export const Hero: React.FC = () => {
@@ -99,6 +100,17 @@ export const Hero: React.FC = () => {
                 </a>
 
                 <a
+                  href="https://linkedin.com/in/garidepalli-mahesh-raja"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2.5 rounded-xl border border-slate-300 dark:border-slate-800 bg-white hover:bg-slate-100 dark:bg-[#0D121F] dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/50 transition-all shadow-xs"
+                  aria-label="LinkedIn Profile"
+                  title="LinkedIn Profile"
+                >
+                  <LinkedinIcon className="w-4 h-4 text-blue-500" />
+                </a>
+
+                <a
                   href="https://vercel.com/maheshraja12"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -136,6 +148,9 @@ export const Hero: React.FC = () => {
                   <img
                     src={activePhotoSrc}
                     alt="Garidepalli Mahesh Raja"
+                    width={320}
+                    height={320}
+                    fetchPriority="high"
                     onError={() => setPhotoError(true)}
                     className="w-full h-full object-cover rounded-full group-hover:scale-105 transition-transform duration-500"
                   />
