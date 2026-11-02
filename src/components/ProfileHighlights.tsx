@@ -4,7 +4,7 @@ import { Package, Briefcase, Monitor, GraduationCap } from 'lucide-react';
 const HIGHLIGHTS = [
   {
     icon: Package,
-    number: '8+',
+    number: '6+',
     label: 'Projects Completed',
     glow: 'text-purple-600 bg-purple-50 border-purple-200 dark:text-purple-400 dark:bg-purple-950/40 dark:border-purple-800/60',
   },
