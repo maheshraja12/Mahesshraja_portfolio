@@ -16,7 +16,7 @@
       "destination": "/Mahesh_Raja_resume.pdf"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

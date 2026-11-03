@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Check, Copy, AlertCircle, Monitor, ExternalLink } from 'lucide-react';
+import { Mail, Phone, MapPin, Check, Copy, AlertCircle, Monitor, ExternalLink } from 'lucide-react';
 import { LinkedinIcon } from './LinkedinIcon';
 import { WhatsAppIcon } from './WhatsAppButton';
 import confetti from 'canvas-confetti';
@@ -7,6 +7,7 @@ import confetti from 'canvas-confetti';
 interface FormData {
   name: string;
   email: string;
+  subject: string;
   message: string;
   botHoneypot: string;
 }
@@ -14,15 +15,18 @@ interface FormData {
 interface FormErrors {
   name?: string;
   email?: string;
+  subject?: string;
   message?: string;
 }
 
 const WHATSAPP_DIRECT_URL = 'https://wa.me/919398961621?text=Hello%20Mahesh%2C%20I%20viewed%20your%20portfolio%20and%20would%20like%20to%20connect.';
+const RECEIVING_EMAIL = 'maheshrajagaridepalli954@gmail.com';
 
 export const ContactSection: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
+    subject: '',
     message: '',
     botHoneypot: '',
   });
@@ -31,8 +35,7 @@ export const ContactSection: React.FC = () => {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [lastMailtoUrl, setLastMailtoUrl] = useState<string>('');
-  const [lastWebmailUrl, setLastWebmailUrl] = useState<string>('');
+  const [lastGmailUrl, setLastGmailUrl] = useState<string>('');
 
   const validate = (): boolean => {
     const errs: FormErrors = {};
@@ -51,6 +54,15 @@ export const ContactSection: React.FC = () => {
       errs.email = 'Please provide your email address.';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       errs.email = 'Please provide a valid email format (e.g. name@domain.com).';
+    }
+
+    const trimmedSubject = formData.subject.trim();
+    if (!trimmedSubject) {
+      errs.subject = 'Please enter a subject.';
+    } else if (trimmedSubject.length < 2) {
+      errs.subject = 'Subject must be at least 2 characters long.';
+    } else if (trimmedSubject.length > 150) {
+      errs.subject = 'Subject cannot exceed 150 characters.';
     }
 
     const trimmedMessage = formData.message.trim();
@@ -79,47 +91,40 @@ export const ContactSection: React.FC = () => {
 
     const trimmedName = formData.name.trim();
     const trimmedEmail = formData.email.trim();
+    const trimmedSubject = formData.subject.trim();
     const trimmedMessage = formData.message.trim();
 
-    const subjectText = `Portfolio Inquiry from ${trimmedName}`;
-    const bodyText = `Hi Mahesh,\n\n${trimmedMessage}\n\n---\nSender: ${trimmedName}\nEmail: ${trimmedEmail}`;
+    // Professional greeting and structured body content
+    const bodyContent = [
+      'Dear Mahesh Raja,',
+      '',
+      trimmedMessage,
+      '',
+      '---',
+      `From: ${trimmedName}`,
+      `Email: ${trimmedEmail}`,
+    ].join('\n');
 
-    const mailtoUrl = `mailto:maheshrajagaridepalli954@gmail.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
-    const webmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=maheshrajagaridepalli954@gmail.com&su=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+    // Build standard safe Gmail compose URL using URLSearchParams
+    const params = new URLSearchParams();
+    params.set('view', 'cm');
+    params.set('fs', '1');
+    params.set('to', RECEIVING_EMAIL);
+    params.set('su', trimmedSubject);
+    params.set('body', bodyContent);
 
-    setLastMailtoUrl(mailtoUrl);
-    setLastWebmailUrl(webmailUrl);
+    // URLSearchParams encodes spaces as +; replacing + with %20 produces standard %20 URL encoding
+    const gmailUrl = `https://mail.google.com/mail/?${params.toString().replace(/\+/g, '%20')}`;
 
-    // 1. Direct email client redirection
-    try {
-      window.location.href = mailtoUrl;
-    } catch {
-      // Handled via UI buttons if protocol interception is blocked
-    }
-
-    // 2. Non-blocking asynchronous backup sync to backend API / Supabase
-    try {
-      fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: trimmedName,
-          email: trimmedEmail,
-          message: trimmedMessage,
-          botHoneypot: formData.botHoneypot,
-        }),
-      }).catch(() => {
-        // Silently ignore background sync failure since email redirection is primary
-      });
-    } catch {
-      // ignore
-    }
-
+    setLastGmailUrl(gmailUrl);
     setIsSubmitted(true);
 
+    // Open Gmail directly in a new browser tab
+    window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+
     confetti({
-      particleCount: 50,
-      spread: 70,
+      particleCount: 40,
+      spread: 60,
       origin: { y: 0.8 },
       colors: ['#8B5CF6', '#3B82F6', '#A855F7', '#60A5FA'],
     });
@@ -129,6 +134,7 @@ export const ContactSection: React.FC = () => {
     setFormData({
       name: '',
       email: '',
+      subject: '',
       message: '',
       botHoneypot: '',
     });
@@ -137,7 +143,7 @@ export const ContactSection: React.FC = () => {
   };
 
   const handleCopyEmail = () => {
-    navigator.clipboard.writeText('maheshrajagaridepalli954@gmail.com');
+    navigator.clipboard.writeText(RECEIVING_EMAIL);
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2500);
   };
@@ -178,7 +184,7 @@ export const ContactSection: React.FC = () => {
               <div className="grid grid-cols-3 gap-2">
                 {/* Email Me */}
                 <a
-                  href="mailto:maheshrajagaridepalli954@gmail.com"
+                  href={`mailto:${RECEIVING_EMAIL}`}
                   className="py-2 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold flex flex-col items-center justify-center gap-1 transition-colors shadow-xs"
                 >
                   <Mail className="w-3.5 h-3.5" />
@@ -216,11 +222,11 @@ export const ContactSection: React.FC = () => {
                 <div className="min-w-0">
                   <span className="text-[10px] text-[#64748B] dark:text-slate-500 block uppercase font-bold tracking-wider">Email Address</span>
                   <a
-                    href="mailto:maheshrajagaridepalli954@gmail.com"
+                    href={`mailto:${RECEIVING_EMAIL}`}
                     className="text-xs font-semibold text-[#11182B] dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors truncate block"
-                    title="maheshrajagaridepalli954@gmail.com"
+                    title={RECEIVING_EMAIL}
                   >
-                    maheshrajagaridepalli954@gmail.com
+                    {RECEIVING_EMAIL}
                   </a>
                 </div>
               </div>
@@ -299,7 +305,7 @@ export const ContactSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Column: Message Form with Direct Email Redirection (5 cols) */}
+          {/* Center Column: Gmail-Only Message Form (5 cols) */}
           <div className="lg:col-span-5">
             <div className="p-6 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-sm dark:shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -318,6 +324,7 @@ export const ContactSection: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Name field */}
                   <div>
                     <label htmlFor="contact-name" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
                       Your Name <span className="text-purple-600">*</span>
@@ -342,6 +349,7 @@ export const ContactSection: React.FC = () => {
                     )}
                   </div>
 
+                  {/* Recruiter's Email field */}
                   <div>
                     <label htmlFor="contact-email" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
                       Your Email <span className="text-purple-600">*</span>
@@ -367,6 +375,32 @@ export const ContactSection: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Subject field */}
+                <div>
+                  <label htmlFor="contact-subject" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
+                    Subject <span className="text-purple-600">*</span>
+                  </label>
+                  <input
+                    id="contact-subject"
+                    type="text"
+                    value={formData.subject}
+                    onChange={(e) => {
+                      setFormData({ ...formData, subject: e.target.value });
+                      if (errors.subject) setErrors({ ...errors, subject: undefined });
+                    }}
+                    placeholder="e.g. AI / Full-Stack Engineer Opportunity"
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.subject ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
+                  />
+                  {errors.subject && (
+                    <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3 shrink-0" />
+                      <span>{errors.subject}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Message field */}
                 <div>
                   <label htmlFor="contact-message" className="block text-[11px] font-semibold text-[#475569] dark:text-slate-400 mb-1">
                     Message <span className="text-purple-600">*</span>
@@ -391,68 +425,54 @@ export const ContactSection: React.FC = () => {
                   )}
                 </div>
 
+                {/* Submit button */}
                 <button
                   type="submit"
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold text-xs shadow-md dark:shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Send Message via Email Redirection</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Send Message via Gmail</span>
                 </button>
 
-                {/* Verified Confirmation State with Instant Webmail & Client Options */}
+                {/* User redirection note */}
+                <p className="text-[11px] text-center text-[#64748B] dark:text-slate-400">
+                  You'll be redirected to Gmail to review and send your message.
+                </p>
+
+                {/* Transparent Guidance / Post-Compose State */}
                 {isSubmitted && (
                   <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-xs text-purple-950 dark:text-purple-200 space-y-2.5 animate-in fade-in duration-300">
                     <div className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                      <ExternalLink className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold block text-purple-900 dark:text-purple-200">
-                          Your email app is opening with your message ready. Please press Send to deliver it.
+                          Gmail compose opened in a new tab.
                         </span>
                         <p className="text-[11px] text-purple-800 dark:text-purple-300 mt-1">
-                          If your email client didn't launch automatically, click below to open directly:
+                          Review your pre-filled message in Gmail and click <strong>Send</strong>. If you are not signed into Google, please sign in to complete sending.
                         </p>
                       </div>
                     </div>
 
                     <div className="pt-2 border-t border-purple-200 dark:border-purple-800/60 flex flex-wrap items-center gap-2">
-                      {lastWebmailUrl && (
+                      {lastGmailUrl && (
                         <a
-                          href={lastWebmailUrl}
+                          href={lastGmailUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold transition-colors shadow-xs"
                         >
                           <ExternalLink className="w-3 h-3" />
-                          <span>Open in Gmail (Web)</span>
+                          <span>Re-open Gmail Compose</span>
                         </a>
                       )}
-
-                      {lastMailtoUrl && (
-                        <a
-                          href={lastMailtoUrl}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-300 dark:border-purple-700 bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 text-[11px] font-medium transition-colors"
-                        >
-                          <Mail className="w-3 h-3" />
-                          <span>Retry Mail Client</span>
-                        </a>
-                      )}
-
-                      <a
-                        href={WHATSAPP_DIRECT_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20bd5a] text-white text-[11px] font-semibold transition-colors shadow-xs"
-                      >
-                        <WhatsAppIcon className="w-3 h-3" />
-                        <span>Chat on WhatsApp</span>
-                      </a>
 
                       <button
                         type="button"
                         onClick={handleReset}
                         className="text-[11px] text-purple-700 dark:text-purple-300 underline hover:no-underline ml-auto cursor-pointer"
                       >
-                        Send another
+                        Compose another
                       </button>
                     </div>
                   </div>

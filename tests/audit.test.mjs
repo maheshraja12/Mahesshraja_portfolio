@@ -109,31 +109,53 @@ test('3. Project Data & Architecture Case Studies Integrity', () => {
   }
 });
 
-test('4. Contact Backend API & Supabase Integration Verification', () => {
-  // Check standalone serverless API endpoints exist and are hardened
-  const contactApiTs = fs.readFileSync(path.join(ROOT_DIR, 'api', 'contact.ts'), 'utf8');
-  assert.ok(contactApiTs.includes("req.method !== 'POST'"), 'api/contact.ts must enforce POST method only');
-  assert.ok(contactApiTs.includes('botHoneypot'), 'api/contact.ts must check honeypot spam protection');
-  assert.ok(contactApiTs.includes('RATE_LIMIT_WINDOW_MS'), 'api/contact.ts must enforce rate limiting');
-  assert.ok(contactApiTs.includes('SUPABASE_URL'), 'api/contact.ts must support Supabase URL');
-  assert.ok(contactApiTs.includes('contact_submissions'), 'api/contact.ts must target contact_submissions table');
-  assert.ok(contactApiTs.includes('sanitizeInput'), 'api/contact.ts must sanitize inputs');
+test('4. Contact Form — Gmail Compose Only & No Database Storage Verification', () => {
+  // Confirm NO backend API or server-side message storage exists
+  const apiContactPath = path.join(ROOT_DIR, 'api', 'contact.ts');
+  const apiMessagesPath = path.join(ROOT_DIR, 'api', 'messages.ts');
+  const supabaseDir = path.join(ROOT_DIR, 'supabase');
+  assert.ok(!fs.existsSync(apiContactPath), 'api/contact.ts must NOT exist (no serverless contact storage)');
+  assert.ok(!fs.existsSync(apiMessagesPath), 'api/messages.ts must NOT exist (no admin messages API)');
+  assert.ok(!fs.existsSync(supabaseDir), 'supabase/ directory must NOT exist (no external database)');
 
-  // Verify Supabase schema file exists
-  const schemaSqlPath = path.join(ROOT_DIR, 'supabase', 'schema.sql');
-  assert.ok(fs.existsSync(schemaSqlPath), 'supabase/schema.sql must exist');
-  const schemaSql = fs.readFileSync(schemaSqlPath, 'utf8');
-  assert.ok(schemaSql.includes('contact_submissions'), 'supabase/schema.sql must define contact_submissions table');
-  assert.ok(schemaSql.includes('ROW LEVEL SECURITY'), 'supabase/schema.sql must enable RLS');
-
-  // Check ContactSection fulfills backend submission behavior
+  // Verify ContactSection component implementation
   const contactSectionTsx = fs.readFileSync(path.join(ROOT_DIR, 'src', 'components', 'ContactSection.tsx'), 'utf8');
-  assert.ok(contactSectionTsx.includes('fetch(\'/api/contact\''), 'ContactSection must submit to /api/contact');
-  assert.ok(contactSectionTsx.includes('botHoneypot'), 'ContactSection must include anti-spam honeypot');
-  assert.ok(contactSectionTsx.includes('validate'), 'ContactSection must validate fields before submission');
-  assert.ok(contactSectionTsx.includes('Email Me'), 'ContactSection must provide direct Email Me action');
-  assert.ok(contactSectionTsx.includes('WhatsApp'), 'ContactSection must provide direct WhatsApp action');
-  assert.ok(contactSectionTsx.includes('Call Me'), 'ContactSection must provide direct Call Me action');
+
+  // Verification: No database or backend fetch calls in ContactSection
+  assert.ok(!contactSectionTsx.includes("fetch('/api/contact'"), 'ContactSection must NOT submit to any backend API');
+  assert.ok(!contactSectionTsx.includes('fetch('), 'ContactSection must have NO background network fetch calls');
+
+  // Verification: No mailto redirection or Retry Mail Client in form submission
+  assert.ok(!contactSectionTsx.includes('Retry Mail Client'), 'Must NOT have "Retry Mail Client"');
+  assert.ok(!contactSectionTsx.includes('Your email app is opening'), 'Must NOT have "Your email app is opening" banner');
+  assert.ok(!contactSectionTsx.includes('Message sent successfully'), 'Must NOT display fake "Message sent successfully" banner');
+
+  // Verification: Gmail compose URL formatting
+  assert.ok(contactSectionTsx.includes('mail.google.com/mail/'), 'Must compose using mail.google.com/mail/');
+  assert.ok(contactSectionTsx.includes("params.set('view', 'cm')") || contactSectionTsx.includes('view=cm'), 'Must use Gmail compose mode (view=cm)');
+  assert.ok(contactSectionTsx.includes("params.set('fs', '1')") || contactSectionTsx.includes('fs=1'), 'Must use full-screen compose (fs=1)');
+  assert.ok(contactSectionTsx.includes('maheshrajagaridepalli954@gmail.com'), 'Must target maheshrajagaridepalli954@gmail.com');
+  assert.ok(contactSectionTsx.includes('URLSearchParams'), 'Must use URLSearchParams for safe URL encoding');
+  assert.ok(contactSectionTsx.includes("window.open(gmailUrl, '_blank'"), 'Must open Gmail in a new tab');
+
+  // Verification: Required form fields
+  assert.ok(contactSectionTsx.includes('contact-name'), 'Must include Name input');
+  assert.ok(contactSectionTsx.includes('contact-email'), 'Must include Email input');
+  assert.ok(contactSectionTsx.includes('contact-subject'), 'Must include Subject input');
+  assert.ok(contactSectionTsx.includes('contact-message'), 'Must include Message textarea');
+
+  // Verification: UI button and redirection note
+  assert.ok(contactSectionTsx.includes('Send Message via Gmail'), 'Button label must be "Send Message via Gmail"');
+  assert.ok(
+    contactSectionTsx.includes("You'll be redirected to Gmail to review and send your message."),
+    'Must display the exact redirection note below the button'
+  );
+
+  // Verification: Sidebar direct contact channels preserved
+  assert.ok(contactSectionTsx.includes('WhatsApp'), 'Sidebar must preserve direct WhatsApp access');
+  assert.ok(contactSectionTsx.includes('Email Me'), 'Sidebar must preserve direct Email Me action');
+  assert.ok(contactSectionTsx.includes('Call Me'), 'Sidebar must preserve direct Call Me action');
+  assert.ok(contactSectionTsx.includes('linkedin.com'), 'Sidebar must preserve LinkedIn link');
 });
 
 test('5. Component Layout & Navigation Integrity', () => {
