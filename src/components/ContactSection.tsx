@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Check, Copy, AlertCircle, Monitor, ExternalLink, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Check, Copy, AlertCircle, Monitor, ExternalLink } from 'lucide-react';
 import { LinkedinIcon } from './LinkedinIcon';
 import { WhatsAppIcon } from './WhatsAppButton';
 import confetti from 'canvas-confetti';
@@ -17,8 +17,6 @@ interface FormErrors {
   message?: string;
 }
 
-type SubmissionStatus = 'idle' | 'submitting' | 'success' | 'error';
-
 const WHATSAPP_DIRECT_URL = 'https://wa.me/919398961621?text=Hello%20Mahesh%2C%20I%20viewed%20your%20portfolio%20and%20would%20like%20to%20connect.';
 
 export const ContactSection: React.FC = () => {
@@ -32,9 +30,9 @@ export const ContactSection: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
-  const [statusMessage, setStatusMessage] = useState<string>('');
-  const [retryAfterMinutes, setRetryAfterMinutes] = useState<number | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [lastMailtoUrl, setLastMailtoUrl] = useState<string>('');
+  const [lastWebmailUrl, setLastWebmailUrl] = useState<string>('');
 
   const validate = (): boolean => {
     const errs: FormErrors = {};
@@ -68,79 +66,63 @@ export const ContactSection: React.FC = () => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     // Silently trap automated bot submissions via hidden honeypot
     if (formData.botHoneypot) {
-      setSubmissionStatus('success');
-      setStatusMessage('Thank you for reaching out!');
+      setIsSubmitted(true);
       return;
     }
 
     if (!validate()) return;
 
-    setSubmissionStatus('submitting');
-    setStatusMessage('');
-    setRetryAfterMinutes(null);
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim();
+    const trimmedMessage = formData.message.trim();
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12-second timeout guard
+    const subjectText = `Portfolio Inquiry from ${trimmedName}`;
+    const bodyText = `Hi Mahesh,\n\n${trimmedMessage}\n\n---\nSender: ${trimmedName}\nEmail: ${trimmedEmail}`;
 
+    const mailtoUrl = `mailto:maheshrajagaridepalli954@gmail.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+    const webmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=maheshrajagaridepalli954@gmail.com&su=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+
+    setLastMailtoUrl(mailtoUrl);
+    setLastWebmailUrl(webmailUrl);
+
+    // 1. Direct email client redirection
     try {
-      const response = await fetch('/api/contact', {
+      window.location.href = mailtoUrl;
+    } catch {
+      // Handled via UI buttons if protocol interception is blocked
+    }
+
+    // 2. Non-blocking asynchronous backup sync to backend API / Supabase
+    try {
+      fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          message: formData.message.trim(),
+          name: trimmedName,
+          email: trimmedEmail,
+          message: trimmedMessage,
           botHoneypot: formData.botHoneypot,
         }),
-        signal: controller.signal,
+      }).catch(() => {
+        // Silently ignore background sync failure since email redirection is primary
       });
-
-      clearTimeout(timeoutId);
-      const data = await response.json().catch(() => ({}));
-
-      if (response.ok && data.ok) {
-        setSubmissionStatus('success');
-        setStatusMessage(data.message || 'Your message has been securely submitted! Mahesh will respond to your email shortly.');
-
-        confetti({
-          particleCount: 50,
-          spread: 70,
-          origin: { y: 0.8 },
-          colors: ['#8B5CF6', '#3B82F6', '#A855F7', '#60A5FA'],
-        });
-
-        // Reset form inputs only after verified submission
-        setFormData({
-          name: '',
-          email: '',
-          message: '',
-          botHoneypot: '',
-        });
-        setErrors({});
-      } else {
-        setSubmissionStatus('error');
-        setStatusMessage(data.error || 'Failed to submit enquiry through backend API.');
-        if (data.retryAfterMinutes) {
-          setRetryAfterMinutes(data.retryAfterMinutes);
-        }
-      }
-    } catch (err: any) {
-      clearTimeout(timeoutId);
-      setSubmissionStatus('error');
-      if (err.name === 'AbortError') {
-        setStatusMessage('The request timed out. Please try again or reach out directly below.');
-      } else {
-        setStatusMessage('Unable to reach the server API. You can send your message directly via email or WhatsApp below.');
-      }
+    } catch {
+      // ignore
     }
+
+    setIsSubmitted(true);
+
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { y: 0.8 },
+      colors: ['#8B5CF6', '#3B82F6', '#A855F7', '#60A5FA'],
+    });
   };
 
   const handleReset = () => {
@@ -151,8 +133,7 @@ export const ContactSection: React.FC = () => {
       botHoneypot: '',
     });
     setErrors({});
-    setSubmissionStatus('idle');
-    setStatusMessage('');
+    setIsSubmitted(false);
   };
 
   const handleCopyEmail = () => {
@@ -165,14 +146,6 @@ export const ContactSection: React.FC = () => {
     navigator.clipboard.writeText('+919398961621');
     setCopiedPhone(true);
     setTimeout(() => setCopiedPhone(false), 2500);
-  };
-
-  const getDirectMailtoUrl = () => {
-    const subject = encodeURIComponent(`Portfolio Inquiry - ${formData.name || 'Visitor'}`);
-    const body = encodeURIComponent(
-      `Hi Mahesh,\n\n${formData.message ? formData.message + '\n\n' : ''}Best regards,\n${formData.name || ''}\n${formData.email ? 'Email: ' + formData.email : ''}`
-    );
-    return `mailto:maheshrajagaridepalli954@gmail.com?subject=${subject}&body=${body}`;
   };
 
   return (
@@ -326,7 +299,7 @@ export const ContactSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Column: Validated Message Form with Backend API (5 cols) */}
+          {/* Center Column: Message Form with Direct Email Redirection (5 cols) */}
           <div className="lg:col-span-5">
             <div className="p-6 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 shadow-sm dark:shadow-xl">
               <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -352,7 +325,6 @@ export const ContactSection: React.FC = () => {
                     <input
                       id="contact-name"
                       type="text"
-                      disabled={submissionStatus === 'submitting'}
                       value={formData.name}
                       onChange={(e) => {
                         setFormData({ ...formData, name: e.target.value });
@@ -360,7 +332,7 @@ export const ContactSection: React.FC = () => {
                       }}
                       placeholder="e.g. Alex Johnson"
                       className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.name ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
+                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
                     />
                     {errors.name && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -377,7 +349,6 @@ export const ContactSection: React.FC = () => {
                     <input
                       id="contact-email"
                       type="email"
-                      disabled={submissionStatus === 'submitting'}
                       value={formData.email}
                       onChange={(e) => {
                         setFormData({ ...formData, email: e.target.value });
@@ -385,7 +356,7 @@ export const ContactSection: React.FC = () => {
                       }}
                       placeholder="e.g. alex@company.com"
                       className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.email ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
+                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
                     />
                     {errors.email && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -403,7 +374,6 @@ export const ContactSection: React.FC = () => {
                   <textarea
                     id="contact-message"
                     rows={4}
-                    disabled={submissionStatus === 'submitting'}
                     value={formData.message}
                     onChange={(e) => {
                       setFormData({ ...formData, message: e.target.value });
@@ -411,7 +381,7 @@ export const ContactSection: React.FC = () => {
                     }}
                     placeholder="Describe your inquiry, project scope, or engineering opportunity..."
                     className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.message ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60 resize-y`}
+                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs resize-y`}
                   />
                   {errors.message && (
                     <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -423,36 +393,50 @@ export const ContactSection: React.FC = () => {
 
                 <button
                   type="submit"
-                  disabled={submissionStatus === 'submitting'}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold text-xs shadow-md dark:shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-75 disabled:cursor-not-allowed"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold text-xs shadow-md dark:shadow-[0_0_20px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
-                  {submissionStatus === 'submitting' ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Submitting Enquiry Securely...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Send Message via Secure API</span>
-                    </>
-                  )}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Send Message via Email Redirection</span>
                 </button>
 
-                {/* Verified Backend Success State */}
-                {submissionStatus === 'success' && (
-                  <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-950 dark:text-emerald-200 space-y-2 animate-in fade-in duration-300">
+                {/* Verified Confirmation State with Instant Webmail & Client Options */}
+                {isSubmitted && (
+                  <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-xs text-purple-950 dark:text-purple-200 space-y-2.5 animate-in fade-in duration-300">
                     <div className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold block text-emerald-900 dark:text-emerald-200">
-                          {statusMessage || 'Your message has been securely submitted! Mahesh will respond to your email shortly.'}
+                        <span className="font-bold block text-purple-900 dark:text-purple-200">
+                          Your email app is opening with your message ready. Please press Send to deliver it.
                         </span>
+                        <p className="text-[11px] text-purple-800 dark:text-purple-300 mt-1">
+                          If your email client didn't launch automatically, click below to open directly:
+                        </p>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-emerald-200 dark:border-emerald-800/60 flex items-center justify-between">
-                      <span className="text-[11px] text-emerald-700 dark:text-emerald-300">Need immediate real-time chat?</span>
+                    <div className="pt-2 border-t border-purple-200 dark:border-purple-800/60 flex flex-wrap items-center gap-2">
+                      {lastWebmailUrl && (
+                        <a
+                          href={lastWebmailUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold transition-colors shadow-xs"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Open in Gmail (Web)</span>
+                        </a>
+                      )}
+
+                      {lastMailtoUrl && (
+                        <a
+                          href={lastMailtoUrl}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-purple-300 dark:border-purple-700 bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 text-[11px] font-medium transition-colors"
+                        >
+                          <Mail className="w-3 h-3" />
+                          <span>Retry Mail Client</span>
+                        </a>
+                      )}
+
                       <a
                         href={WHATSAPP_DIRECT_URL}
                         target="_blank"
@@ -462,51 +446,13 @@ export const ContactSection: React.FC = () => {
                         <WhatsAppIcon className="w-3 h-3" />
                         <span>Chat on WhatsApp</span>
                       </a>
-                    </div>
-                  </div>
-                )}
-
-                {/* Failure / Rate Limit / Timeout Notice with Fallbacks */}
-                {submissionStatus === 'error' && (
-                  <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900/60 text-xs text-rose-950 dark:text-rose-200 space-y-2 animate-in fade-in duration-300">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold block text-rose-900 dark:text-rose-200">
-                          Submission Notice
-                        </span>
-                        <p className="text-[11px] text-rose-800 dark:text-rose-300 mt-0.5">
-                          {statusMessage}
-                          {retryAfterMinutes ? ` Please retry in ${retryAfterMinutes} minute(s).` : ''}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-rose-200 dark:border-rose-800/60 flex flex-wrap items-center gap-2">
-                      <a
-                        href={getDirectMailtoUrl()}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-semibold transition-colors shadow-xs"
-                      >
-                        <Mail className="w-3 h-3" />
-                        <span>Send via Email Client</span>
-                      </a>
-
-                      <a
-                        href={WHATSAPP_DIRECT_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20bd5a] text-white text-[11px] font-semibold transition-colors shadow-xs"
-                      >
-                        <WhatsAppIcon className="w-3 h-3" />
-                        <span>WhatsApp Me</span>
-                      </a>
 
                       <button
                         type="button"
                         onClick={handleReset}
-                        className="text-[11px] text-rose-700 dark:text-rose-300 underline hover:no-underline ml-auto cursor-pointer"
+                        className="text-[11px] text-purple-700 dark:text-purple-300 underline hover:no-underline ml-auto cursor-pointer"
                       >
-                        Reset form
+                        Send another
                       </button>
                     </div>
                   </div>
