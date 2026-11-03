@@ -28,6 +28,7 @@ export interface ProjectCaseStudy {
   testingNote?: string;
   testingDeployment?: string;
   lessonsLearned?: string;
+  verifiedResults?: string;
   futureImprovements?: string[];
 }
 

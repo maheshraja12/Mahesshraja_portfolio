@@ -56,6 +56,7 @@ export const projectsData: Project[] = [
       testingDeployment: 'Verified end-to-end form submission with automated test scripts (test_modal_submission.js) and active production endpoints on Vercel.',
       testingNote: 'Verified end-to-end form submission with automated test scripts (test_modal_submission.js) and active production endpoints on Vercel.',
       lessonsLearned: 'Serverless environments necessitate clean decoupling between business logic and database persistence adapters to accommodate ephemeral disk lifecycles.',
+      verifiedResults: 'Live on Vercel with responsive EJS views, automated modal lead capture, and dual-driver persistence tested across local SQLite (WAL) and cloud Supabase PostgreSQL.',
       futureImprovements: [
         'Automated WhatsApp / SMS lead notifications for real-time sales agent dispatch',
         'Multi-agent role-based permissions and property image upload management'
@@ -116,6 +117,7 @@ export const projectsData: Project[] = [
       testingDeployment: 'Continuous integration configured with pytest test suite verifying upload guards, outlier algorithms, and export routines.',
       testingNote: 'Continuous integration configured with pytest test suite verifying upload guards, outlier algorithms, and export routines.',
       lessonsLearned: 'User-uploaded file processing requires defensive validation at the HTTP boundary before allocating pandas DataFrames in RAM.',
+      verifiedResults: 'Containerized Python application with verified vectorized pandas operations performing null imputation, type inference, and statistical IQR outlier clipping without data corruption.',
       futureImprovements: [
         'Multi-sheet Excel (.xlsx) parsing support',
         'Chunked streaming processing for datasets exceeding worker memory'
@@ -172,6 +174,7 @@ export const projectsData: Project[] = [
       testingDeployment: 'Research paper presented at the 14th International Conference on Contemporary Engineering and Technology (ICCET 2026) in March 2026.',
       testingNote: 'Paper presented at ICCET 2026 conference in March 2026.',
       lessonsLearned: 'Standardizing color variations in medical images prior to neural network training significantly mitigates model bias toward specific laboratory preparation protocols.',
+      verifiedResults: 'Formally accepted and presented as a research paper at the 14th International Conference on Contemporary Engineering and Technology (ICCET 2026) in March 2026.',
       futureImprovements: [
         'Explore Vision Transformer (ViT) architectures for global contextual tissue analysis',
         'Integrate Grad-CAM visual explainability overlays directly in the web UI'
@@ -230,6 +233,7 @@ export const projectsData: Project[] = [
       testingDeployment: 'Extensive pytest test suite covering patch generation failure paths, syntax verification, and pipeline state transitions.',
       testingNote: 'Extensive test suite covering patch generation failure paths, syntax verification, and pipeline state transitions.',
       lessonsLearned: 'Autonomous systems must enforce deterministic safety invariants: static syntax analysis and execution timeouts are mandatory before running generated code.',
+      verifiedResults: 'Demonstrated deterministic error ingestion, AST bytecode parsing, and subprocess execution isolation with wall-clock timeout safety guards across pytest test suites.',
       futureImprovements: [
         'Wasm (WebAssembly) based isolated sandbox runtime',
         'Kubernetes pod automated restart and rollback controller hooks'
@@ -287,6 +291,7 @@ export const projectsData: Project[] = [
       testingDeployment: 'Tested on Windows and Linux development environments with automated pytest mocks. Repository available on GitHub.',
       testingNote: 'Tested on Windows and Linux development environments with automated pytest mocks.',
       lessonsLearned: 'Maintaining a clean separation between CPU-bound audio rendering and the asynchronous network loop is vital for responsive voice interaction.',
+      verifiedResults: 'Open-source voice assistant with verified SQLite persistent memory retrieval, local loopback token authentication, and multi-turn audio conversation responsiveness.',
       futureImprovements: [
         'Local quantized SLM integration (Llama 3 / Mistral) via Ollama',
         'Multi-modal desktop vision inspection tool'
@@ -343,6 +348,7 @@ export const projectsData: Project[] = [
       testingDeployment: 'Cross-browser testing across Chrome, Safari, and mobile viewports on iOS and Android. Active on Vercel at https://fsindhu-app.vercel.app/.',
       testingNote: 'Verified across modern Chrome, Safari, and mobile browsers on iOS and Android.',
       lessonsLearned: 'Micro-interactions deliver the greatest user delight when paired with strict performance budgets and GPU-accelerated CSS properties.',
+      verifiedResults: 'Active production single-page application on Vercel edge network achieving 60fps canvas micro-interactions across mobile and desktop viewports.',
       futureImprovements: [
         'Dynamic interactive photo gallery carousel',
         'Custom audio player controls with ambient background audio'

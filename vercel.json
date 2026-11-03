@@ -4,6 +4,18 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/Mahesh_Raja_Resume.pdf",
+      "destination": "/Mahesh_Raja_resume.pdf"
+    },
+    {
+      "source": "/resume.pdf",
+      "destination": "/Mahesh_Raja_resume.pdf"
+    },
+    {
+      "source": "/resume",
+      "destination": "/Mahesh_Raja_resume.pdf"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

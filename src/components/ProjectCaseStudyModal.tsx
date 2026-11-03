@@ -286,6 +286,19 @@ export const ProjectCaseStudyModal: React.FC<ModalProps> = ({ project, onClose }
             </div>
           )}
 
+          {/* Verified Engineering Results */}
+          {caseStudy.verifiedResults && (
+            <div className="p-4 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 space-y-1">
+              <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-xs uppercase tracking-wider">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>Verified Engineering Results</span>
+              </div>
+              <p className="text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
+                {caseStudy.verifiedResults}
+              </p>
+            </div>
+          )}
+
           {/* Testing & Verification Note */}
           {(caseStudy.testingDeployment || caseStudy.testingNote) && (
             <div className="text-xs p-3.5 rounded-xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/40 text-purple-900 dark:text-purple-200 flex items-center gap-2">
