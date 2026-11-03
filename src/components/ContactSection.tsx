@@ -133,7 +133,7 @@ export const ContactSection: React.FC = () => {
   return (
     <section id="contact" className="py-20 bg-white dark:bg-[#06080F] border-t border-[#E4EAF5] dark:border-slate-900 transition-colors relative scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="mb-12">
           <span className="text-purple-600 dark:text-purple-400 text-xs font-bold tracking-widest uppercase block mb-2">
@@ -149,7 +149,7 @@ export const ContactSection: React.FC = () => {
 
         {/* 3-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left Column: Direct Recruiter Actions & Info (4 cols) */}
           <div className="lg:col-span-4 space-y-3.5">
             {/* Quick Action Buttons: Email Me, WhatsApp Me, Call Me */}
@@ -313,9 +313,8 @@ export const ContactSection: React.FC = () => {
                         if (errors.name) setErrors({ ...errors, name: undefined });
                       }}
                       placeholder="e.g. Alex Johnson"
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                        errors.name ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.name ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
                     />
                     {errors.name && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -338,9 +337,8 @@ export const ContactSection: React.FC = () => {
                         if (errors.email) setErrors({ ...errors, email: undefined });
                       }}
                       placeholder="e.g. alex@company.com"
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                        errors.email ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.email ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs`}
                     />
                     {errors.email && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -364,9 +362,8 @@ export const ContactSection: React.FC = () => {
                       if (errors.message) setErrors({ ...errors, message: undefined });
                     }}
                     placeholder="Describe your inquiry, project scope, or engineering opportunity..."
-                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                      errors.message ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                    } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs resize-y`}
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.message ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs resize-y`}
                   />
                   {errors.message && (
                     <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">

@@ -237,3 +237,4 @@ export const GitHubActivity: React.FC = () => {
     </section>
   );
 };
+

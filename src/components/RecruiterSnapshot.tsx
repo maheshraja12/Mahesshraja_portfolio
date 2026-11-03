@@ -28,7 +28,7 @@ export const RecruiterSnapshot: React.FC = () => {
   return (
     <section id="recruiter-snapshot" className="py-12 bg-[#F1F5FF]/70 dark:bg-[#0A0E1A] border-y border-[#E4EAF5] dark:border-slate-800/80 transition-colors scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header with Recruiter Badge */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#E4EAF5] dark:border-slate-800/80">
           <div>
@@ -333,3 +333,4 @@ export const RecruiterSnapshot: React.FC = () => {
     </section>
   );
 };
+
