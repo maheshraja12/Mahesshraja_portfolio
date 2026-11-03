@@ -359,9 +359,8 @@ export const ContactSection: React.FC = () => {
                         if (errors.name) setErrors({ ...errors, name: undefined });
                       }}
                       placeholder="e.g. Alex Johnson"
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                        errors.name ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.name ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
                     />
                     {errors.name && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -385,9 +384,8 @@ export const ContactSection: React.FC = () => {
                         if (errors.email) setErrors({ ...errors, email: undefined });
                       }}
                       placeholder="e.g. alex@company.com"
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                        errors.email ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.email ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                        } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60`}
                     />
                     {errors.email && (
                       <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">
@@ -412,9 +410,8 @@ export const ContactSection: React.FC = () => {
                       if (errors.message) setErrors({ ...errors, message: undefined });
                     }}
                     placeholder="Describe your inquiry, project scope, or engineering opportunity..."
-                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${
-                      errors.message ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
-                    } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60 resize-y`}
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-xs bg-white dark:bg-[#121829] border ${errors.message ? 'border-rose-400 dark:border-rose-500' : 'border-[#CBD5E1] dark:border-slate-800 focus:border-purple-500'
+                      } text-[#11182B] dark:text-white placeholder-[#94A3B8] dark:placeholder-slate-500 focus:outline-none transition-colors shadow-xs disabled:opacity-60 resize-y`}
                   />
                   {errors.message && (
                     <p className="mt-1 text-[10px] text-rose-500 dark:text-rose-400 flex items-center gap-1">

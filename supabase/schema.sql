@@ -35,3 +35,4 @@ CREATE POLICY "Allow service_role full management"
     TO service_role
     USING (true)
     WITH CHECK (true);
+
