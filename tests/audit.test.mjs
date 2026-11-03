@@ -129,6 +129,8 @@ test('4. Contact Form — Gmail Compose Only & No Database Storage Verification'
   assert.ok(!contactSectionTsx.includes('Retry Mail Client'), 'Must NOT have "Retry Mail Client"');
   assert.ok(!contactSectionTsx.includes('Your email app is opening'), 'Must NOT have "Your email app is opening" banner');
   assert.ok(!contactSectionTsx.includes('Message sent successfully'), 'Must NOT display fake "Message sent successfully" banner');
+  assert.ok(!contactSectionTsx.includes('Re-open Gmail Compose'), 'Must NOT have "Re-open Gmail Compose" link');
+  assert.ok(!contactSectionTsx.includes('Compose another'), 'Must NOT have "Compose another" button');
 
   // Verification: Gmail compose URL formatting
   assert.ok(contactSectionTsx.includes('mail.google.com/mail/'), 'Must compose using mail.google.com/mail/');

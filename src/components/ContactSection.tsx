@@ -34,8 +34,6 @@ export const ContactSection: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [lastGmailUrl, setLastGmailUrl] = useState<string>('');
 
   const validate = (): boolean => {
     const errs: FormErrors = {};
@@ -83,7 +81,6 @@ export const ContactSection: React.FC = () => {
 
     // Silently trap automated bot submissions via hidden honeypot
     if (formData.botHoneypot) {
-      setIsSubmitted(true);
       return;
     }
 
@@ -116,9 +113,6 @@ export const ContactSection: React.FC = () => {
     // URLSearchParams encodes spaces as +; replacing + with %20 produces standard %20 URL encoding
     const gmailUrl = `https://mail.google.com/mail/?${params.toString().replace(/\+/g, '%20')}`;
 
-    setLastGmailUrl(gmailUrl);
-    setIsSubmitted(true);
-
     // Open Gmail directly in a new browser tab
     window.open(gmailUrl, '_blank', 'noopener,noreferrer');
 
@@ -128,18 +122,6 @@ export const ContactSection: React.FC = () => {
       origin: { y: 0.8 },
       colors: ['#8B5CF6', '#3B82F6', '#A855F7', '#60A5FA'],
     });
-  };
-
-  const handleReset = () => {
-    setFormData({
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-      botHoneypot: '',
-    });
-    setErrors({});
-    setIsSubmitted(false);
   };
 
   const handleCopyEmail = () => {
@@ -438,45 +420,6 @@ export const ContactSection: React.FC = () => {
                 <p className="text-[11px] text-center text-[#64748B] dark:text-slate-400">
                   You'll be redirected to Gmail to review and send your message.
                 </p>
-
-                {/* Transparent Guidance / Post-Compose State */}
-                {isSubmitted && (
-                  <div className="p-4 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 text-xs text-purple-950 dark:text-purple-200 space-y-2.5 animate-in fade-in duration-300">
-                    <div className="flex items-start gap-2">
-                      <ExternalLink className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold block text-purple-900 dark:text-purple-200">
-                          Gmail compose opened in a new tab.
-                        </span>
-                        <p className="text-[11px] text-purple-800 dark:text-purple-300 mt-1">
-                          Review your pre-filled message in Gmail and click <strong>Send</strong>. If you are not signed into Google, please sign in to complete sending.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-purple-200 dark:border-purple-800/60 flex flex-wrap items-center gap-2">
-                      {lastGmailUrl && (
-                        <a
-                          href={lastGmailUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-semibold transition-colors shadow-xs"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>Re-open Gmail Compose</span>
-                        </a>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={handleReset}
-                        className="text-[11px] text-purple-700 dark:text-purple-300 underline hover:no-underline ml-auto cursor-pointer"
-                      >
-                        Compose another
-                      </button>
-                    </div>
-                  </div>
-                )}
               </form>
             </div>
           </div>

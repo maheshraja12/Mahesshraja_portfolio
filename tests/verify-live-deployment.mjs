@@ -27,6 +27,8 @@ async function verifyLive() {
     { label: 'Subject input id present', pass: js.includes('contact-subject') },
     { label: 'No "Retry Mail Client" in form', pass: !js.includes('Retry Mail Client') },
     { label: 'No "Your email app is opening" in form', pass: !js.includes('Your email app is opening') },
+    { label: 'No "Re-open Gmail Compose" link in form', pass: !js.includes('Re-open Gmail Compose') },
+    { label: 'No "Compose another" button in form', pass: !js.includes('Compose another') },
     { label: 'No fetch to /api/contact in bundle', pass: !js.includes('/api/contact') }
   ];
 
@@ -60,3 +62,4 @@ verifyLive().catch((err) => {
   console.error(err);
   process.exit(1);
 });
+

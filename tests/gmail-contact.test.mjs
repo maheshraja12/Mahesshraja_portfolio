@@ -119,3 +119,4 @@ test('Gmail URL Generation: Handles spaces, apostrophes, symbols, and multi-line
   assert.ok(!url.includes('\n'));
   assert.ok(!url.includes('\r'));
 });
+
