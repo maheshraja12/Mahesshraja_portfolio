@@ -25,6 +25,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onOpenCaseStu
             <img
               src={project.image}
               alt={project.title}
+              width={600}
+              height={360}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />

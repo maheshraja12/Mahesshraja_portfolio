@@ -5,11 +5,11 @@ import { MobileNavigation } from './MobileNavigation';
 
 const NAV_ITEMS = [
   { label: 'Home', href: '#hero' },
+  { label: 'Recruiter Snapshot', href: '#recruiter-snapshot' },
   { label: 'About', href: '#about' },
   { label: 'Projects', href: '#projects' },
-  { label: 'Experience', href: '#experience' },
-  { label: 'Research', href: '#research' },
   { label: 'Skills', href: '#skills' },
+  { label: 'Experience', href: '#experience' },
   { label: 'Contact', href: '#contact' },
 ];
 
@@ -39,11 +39,13 @@ export const Header: React.FC = () => {
       // 3. Viewport-accurate section detection in visual order
       const sectionsInOrder = [
         'contact',
+        'github',
         'research',
         'experience',
         'skills',
         'projects',
         'about',
+        'recruiter-snapshot',
         'hero',
       ];
 
@@ -51,10 +53,13 @@ export const Header: React.FC = () => {
         const el = document.getElementById(id);
         if (el) {
           const rect = el.getBoundingClientRect();
-          // Active when the section top is above the reading line (240px from top)
-          // and bottom is still visible (> 100px from top)
           if (rect.top <= 240 && rect.bottom >= 100) {
-            setActiveSection(id);
+            // Map sub-sections to their closest parent nav items
+            if (id === 'research' || id === 'github') {
+              setActiveSection('experience');
+            } else {
+              setActiveSection(id);
+            }
             return;
           }
         }
@@ -98,7 +103,7 @@ export const Header: React.FC = () => {
                 <a
                   key={item.label}
                   href={item.href}
-                  className={`px-3.5 py-1 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 ${
                     isActive
                       ? 'text-purple-700 bg-purple-100 dark:text-purple-200 dark:bg-purple-600/30 border border-purple-300 dark:border-purple-500/50 shadow-xs dark:shadow-[0_0_12px_rgba(168,85,247,0.3)]'
                       : 'text-[#536078] hover:text-[#11182B] hover:bg-white/80 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800/50'

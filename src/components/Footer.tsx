@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUp, Mail, ExternalLink } from 'lucide-react';
 import { GithubIcon } from './GithubIcon';
+import { LinkedinIcon } from './LinkedinIcon';
 
 export const Footer: React.FC = () => {
   const scrollToTop = () => {
@@ -47,6 +48,15 @@ export const Footer: React.FC = () => {
               aria-label="GitHub Profile"
             >
               <GithubIcon className="w-4 h-4" />
+            </a>
+            <a
+              href="https://linkedin.com/in/garidepalli-mahesh-raja"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-white hover:bg-slate-100 dark:bg-[#0D121F] dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/50 transition-all shadow-xs"
+              aria-label="LinkedIn Profile"
+            >
+              <LinkedinIcon className="w-4 h-4 text-blue-500" />
             </a>
             <a
               href="mailto:maheshrajagaridepalli954@gmail.com"
