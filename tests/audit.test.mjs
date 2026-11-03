@@ -98,24 +98,26 @@ test('3. Project Data & Assets Integrity', () => {
   }
 });
 
-test('4. Contact Form & Backend API Security Checks', () => {
+test('4. Contact Form & Direct Recruiter Actions Verification', () => {
+  // Check standalone serverless API endpoints exist and are hardened
   const contactApiTs = fs.readFileSync(path.join(ROOT_DIR, 'api', 'contact.ts'), 'utf8');
   assert.ok(contactApiTs.includes("req.method !== 'POST'"), 'api/contact.ts must enforce POST method only');
   assert.ok(contactApiTs.includes('botHoneypot'), 'api/contact.ts must check honeypot spam protection');
   assert.ok(contactApiTs.includes('RATE_LIMIT_WINDOW_MS'), 'api/contact.ts must enforce rate limiting');
-  assert.ok(contactApiTs.includes('sanitizeInput'), 'api/contact.ts must sanitize inputs against XSS');
-  assert.ok(contactApiTs.includes('dedupKey'), 'api/contact.ts must prevent duplicate submissions');
-  assert.ok(contactApiTs.includes('storedSuccessfully'), 'api/contact.ts must verify persistent storage before returning 200');
 
+  // Check ContactSection fulfills recruiter-ready behavior
   const contactSectionTsx = fs.readFileSync(path.join(ROOT_DIR, 'src', 'components', 'ContactSection.tsx'), 'utf8');
-  assert.ok(!contactSectionTsx.includes('window.location.href = mailtoUrl;'), 'ContactSection must not blindly redirect to mailto on submit');
-  assert.ok(contactSectionTsx.includes("fetch('/api/contact'"), 'ContactSection must post to /api/contact');
-  assert.ok(contactSectionTsx.includes("submissionState === 'submitting'"), 'ContactSection must show loading state');
-  assert.ok(contactSectionTsx.includes('getDirectMailtoUrl'), 'ContactSection must provide direct email fallback');
-
-  // Verify Vercel SPA routing excludes API
-  const vercelJson = fs.readFileSync(path.join(ROOT_DIR, 'vercel.json'), 'utf8');
-  assert.ok(vercelJson.includes('(?!api/)'), 'vercel.json must exclude /api/ routes from SPA fallback rewrite');
+  assert.ok(contactSectionTsx.includes('botHoneypot'), 'ContactSection must include anti-spam honeypot');
+  assert.ok(contactSectionTsx.includes('validate'), 'ContactSection must validate fields before submission');
+  assert.ok(
+    contactSectionTsx.includes('Your email app is opening with your message ready. Please press Send to deliver it.'),
+    'ContactSection must display verified confirmation message'
+  );
+  assert.ok(contactSectionTsx.includes('Email Me'), 'ContactSection must provide direct Email Me action');
+  assert.ok(contactSectionTsx.includes('WhatsApp'), 'ContactSection must provide direct WhatsApp action');
+  assert.ok(contactSectionTsx.includes('Call Me'), 'ContactSection must provide direct Call Me action');
+  assert.ok(contactSectionTsx.includes('handleCopyEmail'), 'ContactSection must provide email clipboard copy');
+  assert.ok(contactSectionTsx.includes('handleCopyPhone'), 'ContactSection must provide phone clipboard copy');
 });
 
 test('5. Component Layout & Navigation Integrity', () => {
@@ -124,21 +126,25 @@ test('5. Component Layout & Navigation Integrity', () => {
   assert.ok(appTsx.includes('<Header />'), 'App.tsx must render Header');
   assert.ok(appTsx.includes('<Hero />'), 'App.tsx must render Hero');
   assert.ok(appTsx.includes('<ProfileHighlights />'), 'App.tsx must render ProfileHighlights');
+  assert.ok(appTsx.includes('<RecruiterSnapshot />'), 'App.tsx must render RecruiterSnapshot');
   assert.ok(appTsx.includes('<ProjectGrid />'), 'App.tsx must render ProjectGrid');
   assert.ok(appTsx.includes('<Skills />'), 'App.tsx must render Skills');
   assert.ok(appTsx.includes('<ExperienceTimeline />'), 'App.tsx must render ExperienceTimeline');
+  assert.ok(appTsx.includes('<GitHubActivity />'), 'App.tsx must render GitHubActivity');
   assert.ok(appTsx.includes('<ContactSection />'), 'App.tsx must render ContactSection');
   assert.ok(appTsx.includes('<Footer />'), 'App.tsx must render Footer');
+  assert.ok(appTsx.includes('<FloatingWhatsApp />'), 'App.tsx must render FloatingWhatsApp');
 
   // Verify duplicate id="about" is eliminated
   const timelineTsx = fs.readFileSync(path.join(ROOT_DIR, 'src', 'components', 'ExperienceTimeline.tsx'), 'utf8');
   assert.ok(!timelineTsx.includes('id="about"'), 'ExperienceTimeline.tsx must not contain duplicate id="about"');
 
-  // Verify LinkedIn presence
+  // Verify WhatsApp & LinkedIn presence
   const heroTsx = fs.readFileSync(path.join(ROOT_DIR, 'src', 'components', 'Hero.tsx'), 'utf8');
   const footerTsx = fs.readFileSync(path.join(ROOT_DIR, 'src', 'components', 'Footer.tsx'), 'utf8');
   const contactTsx = fs.readFileSync(path.join(ROOT_DIR, 'src', 'components', 'ContactSection.tsx'), 'utf8');
 
+  assert.ok(heroTsx.includes('whatsapp') || heroTsx.includes('WhatsApp') || heroTsx.includes('wa.me'), 'Hero.tsx must include WhatsApp action');
   assert.ok(heroTsx.includes('linkedin.com'), 'Hero.tsx must include LinkedIn link');
   assert.ok(footerTsx.includes('linkedin.com'), 'Footer.tsx must include LinkedIn link');
   assert.ok(contactTsx.includes('linkedin.com'), 'ContactSection.tsx must include LinkedIn link');

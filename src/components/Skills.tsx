@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowRight, ChevronUp } from 'lucide-react';
+import { ArrowRight, ChevronUp, Layers, Code2, Globe, Server, Brain, Database, Terminal } from 'lucide-react';
 import { skillGroups } from '../data/skills';
 import {
   PythonIcon,
@@ -41,8 +41,17 @@ const PRIMARY_TECHS: TechItem[] = [
   { name: 'Supabase', category: 'Cloud Postgres', Icon: SupabaseIcon },
 ];
 
+const GROUP_ICONS: Record<string, React.FC<{ className?: string }>> = {
+  Programming: Code2,
+  Frontend: Globe,
+  Backend: Server,
+  'AI / ML': Brain,
+  Databases: Database,
+  'Tools & Infrastructure': Terminal,
+};
+
 export const Skills: React.FC = () => {
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   return (
     <section id="skills" className="py-20 bg-white dark:bg-[#06080F] border-t border-[#E4EAF5] dark:border-slate-900 transition-colors scroll-mt-24">
@@ -52,11 +61,14 @@ export const Skills: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
           <div>
             <span className="text-purple-600 dark:text-purple-400 text-xs font-bold tracking-widest uppercase block mb-2">
-              TECHNICAL SKILLS
+              TECHNICAL EXPERTISE
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#11182B] dark:text-white tracking-tight">
-              Tools and Technologies I Work With
+              Tools, Frameworks &amp; Technologies
             </h2>
+            <p className="mt-2 text-xs sm:text-sm text-[#475569] dark:text-slate-400 max-w-xl">
+              Organized by engineering discipline with real project provenance. No arbitrary percentage meters or fabricated ratings.
+            </p>
           </div>
 
           <button
@@ -64,13 +76,13 @@ export const Skills: React.FC = () => {
             onClick={() => setShowAll((prev) => !prev)}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E4EAF5] dark:border-slate-800 bg-[#F8FAFC] dark:bg-[#0D121F] hover:border-purple-500/50 text-[#475569] dark:text-slate-300 hover:text-[#11182B] dark:hover:text-white text-xs font-semibold transition-all cursor-pointer shadow-xs self-start sm:self-auto"
           >
-            <span>{showAll ? 'Collapse Breakdown' : 'View All Skills'}</span>
+            <span>{showAll ? 'Collapse Detailed View' : 'Expand All Groups'}</span>
             {showAll ? <ChevronUp className="w-3.5 h-3.5" /> : <ArrowRight className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />}
           </button>
         </div>
 
         {/* Primary Icon Shelf */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 sm:gap-4 mb-10">
           {PRIMARY_TECHS.map((tech) => (
             <div
               key={tech.name}
@@ -89,36 +101,70 @@ export const Skills: React.FC = () => {
           ))}
         </div>
 
-        {/* Detailed Breakdown when View All is toggled */}
+        {/* 6 Disciplined Groups (Programming, Frontend, Backend, AI/ML, Databases, Tools) */}
         {showAll && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t border-[#E4EAF5] dark:border-slate-800/80 animate-in fade-in duration-300">
-            {skillGroups.map((group) => (
-              <div
-                key={group.category}
-                className="p-5 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 space-y-3 shadow-xs dark:shadow-none"
-              >
-                <h3 className="text-sm font-bold text-[#11182B] dark:text-white flex items-center justify-between">
-                  <span>{group.category}</span>
-                  <span className="text-[10px] font-normal text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800/50">
-                    {group.skills.length} skills
-                  </span>
-                </h3>
-                <p className="text-xs text-[#64748B] dark:text-slate-400 leading-relaxed">
-                  {group.description}
-                </p>
-                <div className="space-y-1.5 pt-1">
-                  {group.skills.map((s) => (
-                    <div
-                      key={s.name}
-                      className="p-2 rounded-lg bg-white dark:bg-[#121829] border border-[#E4EAF5] dark:border-slate-800 flex items-center justify-between text-xs"
-                    >
-                      <span className="font-semibold text-[#11182B] dark:text-slate-200">{s.name}</span>
-                      <span className="text-[10px] text-[#64748B] dark:text-slate-400">{s.context}</span>
+            {skillGroups.map((group) => {
+              const GroupIcon = GROUP_ICONS[group.category] || Layers;
+              return (
+                <div
+                  key={group.category}
+                  className="p-5 rounded-2xl bg-[#F8FAFC] dark:bg-[#0D121F] border border-[#E4EAF5] dark:border-slate-800 space-y-3.5 shadow-xs dark:shadow-none hover:border-purple-500/30 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40 flex items-center justify-center">
+                        <GroupIcon className="w-4 h-4" />
+                      </div>
+                      <h3 className="text-sm font-bold text-[#11182B] dark:text-white">
+                        {group.category}
+                      </h3>
                     </div>
-                  ))}
+                    <span className="text-[10px] font-mono text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-2 py-0.5 rounded border border-purple-200 dark:border-purple-800/40">
+                      {group.skills.length} skills
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-[#64748B] dark:text-slate-400 leading-relaxed">
+                    {group.description}
+                  </p>
+
+                  <div className="space-y-2 pt-1">
+                    {group.skills.map((s) => (
+                      <div
+                        key={s.name}
+                        className="p-3 rounded-xl bg-white dark:bg-[#121829] border border-[#E4EAF5] dark:border-slate-800/80 space-y-1"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-[#11182B] dark:text-slate-200">
+                            {s.name}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                            {s.category}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#475569] dark:text-slate-400 leading-normal">
+                          {s.context}
+                        </p>
+                        {s.usedInProjects && s.usedInProjects.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1 pt-1">
+                            <span className="text-[9px] uppercase font-bold text-purple-600 dark:text-purple-400">Used in:</span>
+                            {s.usedInProjects.map((proj, pIdx) => (
+                              <span
+                                key={pIdx}
+                                className="px-1.5 py-0.5 rounded text-[9px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium"
+                              >
+                                {proj}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
